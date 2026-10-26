@@ -1,0 +1,17 @@
+FROM php:8.4-cli-alpine
+
+RUN apk add --no-cache git unzip libzip && \
+    apk add --no-cache --virtual .build-deps libzip-dev && \
+    docker-php-ext-install zip && \
+    apk del .build-deps
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+
+# Application
+WORKDIR /var/www/html
+COPY . /var/www/html
+
+# Install application dependencies
+RUN composer install --no-interaction
+
+# Unit Testing
+RUN bin/phpunit
